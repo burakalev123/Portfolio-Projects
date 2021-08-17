@@ -10,5 +10,5 @@ CREATE PROCEDURE pr_Names @VarPrice money
 	END
 GO
 
-EXECUTE pr_Names 10.00
+EXECUTE pr_Names 10.000
 GO
