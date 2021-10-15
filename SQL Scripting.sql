@@ -12,6 +12,17 @@
 -- Supports parameters
 -- Flow control logic (IF-THEN-ELSE) Loops(WHILE,FOR)
 -- Stored Procedure can return multiple results
+------------------------------------------------------
+--    Object     |  Performance |   Functionality  |
+------------------------------------------------------
+--  Scalar UDF   |    High      |    Low           |
+------------------------------------------------------
+--  Table UDF    |    High      |    Moderate      |
+------------------------------------------------------
+--  Stored Proc. |              |                  |
+------------------------------------------------------
+--  Views        |              |                  |
+------------------------------------------------------
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 -- Scalar User-Defined Functions (SUDF)
@@ -83,8 +94,67 @@ END;
 -- 3. Body can contain only expressions and imperative logic
 -- 4. You can't use SQL statements in the body.
 -- 5. You can use functions in SELECT, WHERE, GROUP BY.
--- 6. You can call another UDF's or stored proc.
+-- 6. You can call in another UDF's or stored proc.
 -- 7. Most simple DB  object in SQL Scripting
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
+
+-- Table User-Defined Functions (TUDF)
+
+FUNCTION "TF_BOOKS"(CAT VARCHAR(10)) 
+  RETURNS TABLE (
+    BOOK_ID VARCHAR(3),
+    CATEGORY VARCHAR(20),
+    MRP DECIMAL(10, 2)
+  ) 
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER AS 
+BEGIN 
+  RETURN
+  SELECT BOOK_ID,
+    CATEGORY,
+    MRP
+  FROM "T4H"."Books"
+  WHERE CATEGORY = :CAT;
+END;
+
+-- Scalar Func. in Table Func.
+FUNCTION "TF_BOOKS"(CAT VARCHAR(10)) 
+  RETURNS TABLE (
+    BOOK_ID VARCHAR(3),
+    CATEGORY VARCHAR(20),
+    MRP DECIMAL(10, 2),
+    FINAL_PRICE DECIMAL(10, 2)
+  ) 
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER AS 
+BEGIN 
+  RETURN
+  SELECT BOOK_ID,
+    CATEGORY,
+    MRP,
+    FPRICE2(MRP, 20) AS FINAL_PRICE
+  FROM "T4H"."Books"
+  WHERE CATEGORY = :CAT;
+END;
+
+--Dynamic Filtering
+
+FUNCTION "TF_BOOKS"(FILTER_STRING VARCHAR(1000)) 
+  RETURNS TABLE (
+    BOOK_ID VARCHAR(3),
+    CATEGORY VARCHAR(20),
+    MRP DECIMAL(10, 2),
+    FINAL_PRICE DECIMAL(10, 2)
+  ) 
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER AS 
+BEGIN TEMP_TAB_VAR = APPLY_FILTER("T4H"."Books", :FILTER_STRING);
+  RETURN
+  SELECT BOOK_ID,
+    CATEGORY,
+    MRP,
+    FPRICE2(MRP, 20) AS FINAL_PRICE
+  FROM :TEMP_TAB_VAR;
+END;
