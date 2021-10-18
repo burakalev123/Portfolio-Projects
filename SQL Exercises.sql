@@ -22,27 +22,81 @@ SELECT * FROM EMPLOYEE;
 
 --List the first name, last name and age for everyone that's in the table.
 
+SELECT FNAME,
+"Lname",
+AGE
+FROM EMPLOYEE;
+
 --List the first name and city for everyone that's not from SFO.
+
+SELECT 
+	FNAME,
+	CITY
+FROM EMPLOYEE
+WHERE CITY != 'SFO';
 
 --List the first and last names for everyone whose first name ends in "d".
 
+SELECT 
+	FNAME,
+	"Lname"
+FROM EMPLOYEE
+WHERE FNAME LIKE '%d';
+
 --List all columns for everyone whose first name equals "Mary".
+
+SELECT *
+FROM EMPLOYEE
+WHERE FNAME = 'Mary';
 
 --List all columns for everyone whose first name contains "Mary".
 
+SELECT *
+FROM EMPLOYEE
+WHERE FNAME LIKE '%Mary%';
+
 --List unique first names
+
+SELECT DISTINCT FNAME
+FROM EMPLOYEE;
 
 --List all columns where city text length is not equal to 3.
 
+SELECT *
+FROM EMPLOYEE;
+WHERE length(CITY) != 3;
+
 --List first name, id, department (first two digits of ID represents dept)
+
+SELECT 
+	FNAME,
+	ID,
+	LEFT( ID, 2 ) AS Department
+FROM EMPLOYEE;
 
 --List all columns where last name not found.
 
+SELECT *
+FROM EMPLOYEE
+WHERE "Lname" IS NULL;
+
 --List all columns and sort by their work experience.
+
+SELECT *
+FROM EMPLOYEE
+ORDER BY DOJ ASC;
 
 --List all columns and where they have more than 2 years of work experience.
 
+SELECT 
+	*,
+	YEARS_BETWEEN( DOJ, TO_DATE('2018-01-01') ) AS DATEDIFF
+FROM EMPLOYEE
+WHERE YEARS_BETWEEN( DOJ, TO_DATE('2018-01-01') ) > 2;
+
 --List id, fname, doj and work aniversary of all employees.
+
+SELECT ID, FNAME, DOJ 
 
 --Who is highest salary paid employee
 
@@ -51,4 +105,5 @@ SELECT * FROM EMPLOYEE;
 --List first name, salary, tax (if salary > 5000 then 20% else 15%)
 
 -- List all departments and it's max and min salaries
+
 
