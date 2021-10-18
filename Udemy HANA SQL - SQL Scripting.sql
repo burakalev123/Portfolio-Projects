@@ -50,9 +50,6 @@ FUNCTION "FPRICE2"(IN IP DECIMAL(10, 2))
     LANGUAGE SQLSCRIPT
     SQL SECURITY INVOKER AS
 BEGIN
-    /*****************************
-        Write your function logic
-    ****************************/
     	RESULT = :IP - ( :IP * ( 20 / 200 ) );
 END;
 
