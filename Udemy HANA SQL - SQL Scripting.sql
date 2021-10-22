@@ -155,3 +155,138 @@ BEGIN TEMP_TAB_VAR = APPLY_FILTER("T4H"."Books", :FILTER_STRING);
     FPRICE2(MRP, 20) AS FINAL_PRICE
   FROM :TEMP_TAB_VAR;
 END;
+
+-- Stored Procedures
+
+PROCEDURE "deneme"( ) -- Parameter Clause: IN | OUT | INOUT ==> Default IN
+   LANGUAGE SQLSCRIPT -- SQLScript | R ==> Default SQLScript
+   SQL SECURITY INVOKER -- Mode -> DEFINER | INVOKER ==> Default DEFINER
+   --DEFAULT SCHEMA <default_schema_name>
+   READS SQL DATA AS
+BEGIN SEQUENTIAL EXECUTION -- Paralel islemden cikarip sirali isleme gecis icin
+   /*************************************
+       Write your procedure logic
+   *************************************/
+END
+
+PROCEDURE "deneme"() 
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER 
+  --DEFAULT SCHEMA <default_schema_name>
+  READS SQL DATA AS 
+BEGIN 
+  SELECT *
+  FROM "Books";
+END
+
+-- Example Procedure, IF statement used and Table and input variable used.  
+PROCEDURE "FILTER_BOOKS"(IN CAT VARCHAR(1)) 
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER 
+  --DEFAULT SCHEMA <default_schema_name>
+  READS SQL DATA AS 
+BEGIN 
+  --Table variable decleration
+  DECLARE X VARCHAR(10);
+  IF :CAT = 'p' THEN X = 'pdf';
+  ELSEIF :CAT = 'e' THEN X = 'e-book';
+  ELSE X = 'Printed';
+END IF;
+SELECT BOOK_ID,
+  CATEGORY,
+  MRP
+FROM "Books"
+WHERE CATEGORY = :X;
+END
+
+CALL "T4H_1"."FILTER_BOOKS"(CAT => 'p');
+
+--------------------------------------------------------------------------
+-- Example Procedure, OUTPUT Variable added
+PROCEDURE "FILTER_BOOKS"(
+    -- Input Variable
+    IN CAT VARCHAR(1),
+    -- Output Variable as a Table
+    OUT RESULT TABLE(
+      BOOK_ID VARCHAR(3),
+      CATEGORY VARCHAR(10),
+      MRP DECIMAL(10, 2)
+    )
+  ) 
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER 
+  --DEFAULT SCHEMA <default_schema_name>
+  READS SQL DATA AS 
+BEGIN 
+  --Table variable decleration
+  DECLARE X VARCHAR(10);
+  IF :CAT = 'p' THEN X = 'pdf';
+  ELSEIF :CAT = 'e' THEN X = 'e-book';
+  ELSE X = 'Printed';
+END IF;
+RESULT =
+SELECT BOOK_ID,
+  CATEGORY,
+  MRP
+FROM "Books"
+WHERE CATEGORY = :X;
+END
+
+CALL "T4H_1"."FILTER_BOOKS"(CAT => 'p',RESULT => ?)
+--------------------------------------------------------------------------
+-- Table Variables
+
+-- Explicit & Derived type of declaration of variables
+
+  DECLARE X VARCHAR(10);
+
+  DECLARE X TABLE (
+    I INT,
+    AMOUNT DECIMAL(10,2)
+  )
+
+  DECLARE X TABLE_TYPE DEFAULT SELECT * FROM <"XXX Table">
+---------------------------
+PROCEDURE "TV_EXPLICIT"(OUT RESULTS TABLE(NUM INT)) 
+  -- Temporary Variable Explicit method
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER 
+  --DEFAULT SCHEMA <default_schema_name>
+  READS SQL DATA AS 
+BEGIN
+  DECLARE TTV TABLE(NUM INT); -- Even if it is not declared, if it starts with SELECT, it will be created by itself. 
+  TTV = SELECT 1 AS NUM FROM DUMMY;
+  RESULTS = SELECT * FROM :TTV;
+END
+
+-- If you DECLARE a variable in a block EXPLICITLY it will only be in that block
+-- If you dont DECLARE a variable it will be GENERAL variable, even if there multiple blocks.
+--------------------------------------------------------------------------
+--Table Type -- Simple Structure
+
+
+CREATE TYPE tab_table AS TABLE (ID INT, NAME VARCHAR(10));
+
+-- Usage of in a procedure
+-- Created the Table structure outside of the procedure and use it at OUT variable
+CREATE TYPE PART_BOOK AS TABLE (BOOK_ID VARCHAR(3), CATEGORY VARCHAR(10), MRP DECIMAL(10,2));
+
+PROCEDURE "PART_BOOKS"(
+    -- Input Variable
+    IN CAT VARCHAR(1),
+    -- Output Variable as a Table
+    OUT RESULT PART_BOOK
+  ) 
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER 
+  --DEFAULT SCHEMA <default_schema_name>
+  READS SQL DATA AS 
+BEGIN 
+  --Table variable decleration
+  DECLARE X VARCHAR(10);
+  IF :CAT = 'p' THEN X = 'pdf';
+  ELSEIF :CAT = 'e' THEN X = 'e-book';
+  ELSE X = 'Printed';
+END IF;
+RESULT = SELECT BOOK_ID, CATEGORY, MRP FROM "Books" WHERE CATEGORY = :X;
+END
