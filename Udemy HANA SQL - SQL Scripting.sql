@@ -290,3 +290,57 @@ BEGIN
 END IF;
 RESULT = SELECT BOOK_ID, CATEGORY, MRP FROM "Books" WHERE CATEGORY = :X;
 END
+
+-- Transaction Application
+set schema T4H;
+CREATE COLUMN TABLE TRANSACTIONS (
+  TRX_ID INT,
+  TRX_TS TIMESTAMP,
+  ACCOUNT INT,
+  AMOUNT DECIMAL(10,2),
+  ACTI ON VARCHAR(1)
+);
+INSERT INTO "TRANSACTIONS" VALUES (1000, NOW(),1,100,'D');
+INSERT INTO "TRANSACTIONS" VALUES (1001, NOW(),2,100,'D');
+SELECT * FROM "TRANSACTIONS";
+-------------------
+PROCEDURE "TRANSACTIONS_APP"(
+    IN ACCOUNT INT,
+    IN AMOUNT DECIMAL(10, 2),
+    IN ACTION VARCHAR(1),
+    OUT MSG1 NVARCHAR(100),
+    OUT MSG2 NVARCHAR(100)
+  ) 
+  LANGUAGE SQLSCRIPT 
+  SQL SECURITY INVOKER 
+  --DEFAULT SCHEMA <default_schema_name>
+ -- READS SQL DATA 
+AS 
+BEGIN
+  DECLARE TRX INT DEFAULT 1;
+  DECLARE BALANCE DECIMAL(10,2) DEFAULT 1.0;
+    IF :ACTION = 'D' THEN 
+  SELECT MAX(TRX_ID) + 1 INTO TRX FROM "TRANSACTIONS";
+  INSERT INTO "TRANSACTIONS" VALUES (:TRX, NOW(), :ACCOUNT, :AMOUNT, :ACTION);
+  MSG1 = 'Transaction successful and $' || :AMOUNT || ' Deposited into your account';
+  SELECT SUM(AMOUNT) INTO BALANCE FROM "TRANSACTIONS" WHERE ACCOUNT = :ACCOUNT;
+  MSG2 = 'Your available balance is: $' || :BALANCE;
+ ELSEIF :ACTION = 'W' THEN
+    SELECT SUM(AMOUNT) INTO BALANCE FROM "TRANSACTIONS";
+    IF :BALANCE > :AMOUNT THEN 
+        SELECT MAX(TRX_ID) + 1 INTO TRX FROM "TRANSACTIONS";
+        AMOUNT = :AMOUNT * (-1);
+        INSERT INTO "TRANSACTIONS" VALUES (:TRX, NOW(), :ACCOUNT, :AMOUNT, :ACTION);
+        MSG1 = 'Transaction successful and $' || :AMOUNT || ' is deducted from your account';
+        SELECT SUM(AMOUNT) INTO BALANCE FROM "TRANSACTIONS" WHERE ACCOUNT = :ACCOUNT;
+        MSG2 = 'Your available balance is: $' || :BALANCE;
+    ELSE
+        MSG1 = 'Insufficient funds';
+        MSG2 = 'Try again with less amount';
+    END IF;
+    ELSE
+    MSG1 = 'Invalid Transaction Type';
+    MSG2 = 'Please try again with D/W transaction types'
+END IF;
+END
+
