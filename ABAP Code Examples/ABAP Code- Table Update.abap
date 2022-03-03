@@ -7,7 +7,3 @@ update zpa_dagitim
   if sy-subrc eq 0.
     commit work and wait.
   endif. 
-
-
-
-
