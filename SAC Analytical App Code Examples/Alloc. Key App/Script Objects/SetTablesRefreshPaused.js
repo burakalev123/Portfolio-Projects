@@ -1,5 +1,5 @@
 //==============================================================
-function SetTablesRefreshPaused(setRefreshPaused: boolean, ReportTables: Table[], InputTables: Table[]) :void
+// function SetTablesRefreshPaused(setRefreshPaused: boolean, ReportTables: Table[], InputTables: Table[]) : void
 //==============================================================
 
 var i =0;
