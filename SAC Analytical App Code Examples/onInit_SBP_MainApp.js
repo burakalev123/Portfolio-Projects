@@ -50,18 +50,7 @@ if (sKeyUsers.includes(Application.getUserInfo().id)) {
 dVersion_currentMOR = FIN_PLAN_SP.getMember("Version", "public.NewForecast");
 dVersion_currentTAP = FIN_PLAN_SP.getMember("Version", "public.NewBudget");
 
-//Set Current Version
-//---------------------
-/*for (i=0;i<dVersion_all.length; i++) {
-		switch (dVersion_all[i].properties.STATUS) {
-			case "CURRENTMOR":
-				dVersion_currentMOR = dVersion_all[i]; //get the current MOR version (where STATUS=CURRENTMOR)
-			break;
-			case "CURRENTTAP":
-				dVersion_currentTAP = dVersion_all[i]; //get the current TAP version (where STATUS=CURRENTTAP)
-			break;
-		}
-}*/
+
 if (bEnableConsole) { console.log("Current MOR version: " + dVersion_currentMOR.id); }
 if (bEnableConsole) { console.log("Current TAP version: " + dVersion_currentTAP.id); }
 
