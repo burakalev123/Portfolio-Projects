@@ -1,8 +1,7 @@
 SELECT
     [Version],
     [Audit_ID] = CASE
-        WHEN [ForecastID] IN ('29645') THEN 'LOAD_INSTALL_FS'
-        ELSE Audit_ID
+        WHEN [typeofsales] IN ('FSN','FSL','FSE') THEN 'LOAD_INSTALL_FS' ELSE Audit_ID 
     END,
     [TypeofSales],
     [CustomerShipTo],
