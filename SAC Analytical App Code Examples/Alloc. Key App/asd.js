@@ -44,3 +44,8 @@ else {
     }
 
 }
+
+
+ThisApp.SetTablesTimeLevel(
+    ConvertUtils.stringToInteger(this.getSelectedKey()),
+    [tblManualInput1, tblManualInput2, tblManualInput_Report]); 
