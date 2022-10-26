@@ -1,1 +1,0 @@
-Utils_Bookmark.openRecentlyUsed();
