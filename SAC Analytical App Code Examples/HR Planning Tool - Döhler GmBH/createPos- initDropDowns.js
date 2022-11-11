@@ -2,17 +2,17 @@ var i = 0;
 var max_members = 20000;
 var ds = tbl_Empl_Hidden.getDataSource(); //Lea | 26.08.22 | call getDataSource() only once in the beginning of the script and save it in variable to optimize performance
 
-
+// Department //
 var arr_Department = ds.getMembers("PD_001_POSITION.T_001_Department", max_members);
 for (i = 0; i < arr_Department.length; i++) {
     drp_Department.addItem(arr_Department[i].id, arr_Department[i].description);
 }
-
+// Cost Center //
 var arr_CostCenter = ds.getMembers("PD_001_POSITION.T_COSTCENTER", max_members); //Lea | 26.08.22 | zu klären: Sollte das hier aus der Cost Center Dimension gelesen werden?
 for (i = 0; i < arr_CostCenter.length; i++) {
     drp_CostCenter.addItem(arr_CostCenter[i].id, arr_CostCenter[i].description);
 }
-
+// Legal Entitiy //
 var arr_LegalEntity = ds.getMembers("PD_001_LEGALENTITY", 300);  //Lea | 26.08.22 | zu klären: Sollte das hier aus der Legal Entity Dimension gelesen werden?
 for (i = 0; i < arr_LegalEntity.length; i++) {
     if (arr_LegalEntity[i].displayId !== "Not In Hierarchy" && arr_LegalEntity[i].displayId !== "TOTALSAP" && arr_LegalEntity[i].displayId !== "TOTAL" && arr_LegalEntity[i].displayId !== "TOTALNONSAP" && arr_LegalEntity[i].displayId !== "#") {
@@ -20,7 +20,15 @@ for (i = 0; i < arr_LegalEntity.length; i++) {
     }
 
 }
-
+// New: Standart Job Profile //
+//var arr_new_std_jobprofile = PlanningModel_1.getMembers("PD_001_JOB_PROFILE", { limit: 1000 });
+gv_JobProfile = PlanningModel_1.getMembers("PD_001_JOB_PROFILE", { limit: 1000 });
+for (i = 0; i < gv_JobProfile.length; i++) {
+    if (gv_JobProfile[i].id !== "#") {
+        drp_Job_Profile.addItem(gv_JobProfile[i].id, gv_JobProfile[i].description);
+    }
+}
+// Currency //
 var arr_Currency = ds.getMembers("PD_001_TR_CURRENCY", 300); // NH | 13.09.22 | Currency Implementation
 
 for (i = 0; i < arr_Currency.length; i++) {
@@ -28,7 +36,6 @@ for (i = 0; i < arr_Currency.length; i++) {
         drp_Currency.addItem(arr_Currency[i].id, arr_Currency[i].description);
     }
 }
-
 //Date Dropdown Initialization
 var current_year = new Date(Date.now()).getFullYear();
 var next_year = current_year + 1;
