@@ -1,0 +1,18 @@
+SELECT
+    EmpJob."position"               AS Position,
+    Max(EmpJob."startDate")         AS startDate,
+    -------------------------------------------------
+    "C_DIMENSION_MONTH"."Last_Day"  AS Date,
+    -------------------------------------------------
+    'Yes'                           AS Staffed
+    -------------------------------------------------
+FROM "DOE_I_EMPJOB" AS EmpJob
+    INNER JOIN "DOE_C_DIMENSION_MONTH" AS "C_DIMENSION_MONTH"
+    ON "C_DIMENSION_MONTH"."Last_Day" >= EmpJob."startDate"
+        AND "C_DIMENSION_MONTH"."Last_Day" <= EmpJob."endDate"
+    -------------------------------------------------
+WHERE EmpJob."emplStatus" = 209973
+    AND EmpJob."userId" IS NOT NULL
+    AND EmpJob."position" IS NOT NULL
+    -------------------------------------------------
+GROUP BY EmpJob."position", "C_DIMENSION_MONTH"."Last_Day"
