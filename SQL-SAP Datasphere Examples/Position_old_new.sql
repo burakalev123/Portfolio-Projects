@@ -1,12 +1,27 @@
 SELECT
+    DIM_MONTH."date",
     t1."position",
     t1."userId",
     t1."startDate",
-    t2."endDate_Last",
+    t1."endDate",
+    t2."endDate_Last" as endDate_LastEmpJob,
+    CASE
+        WHEN t1."userId" = LEAD(t1."pre_user") OVER (
+            ORDER BY
+                t1."position",
+                t1."startDate"
+        ) THEN t1."endDate"
+        ELSE t2."endDate_Last"
+    END as endDate_Last,
     t1."pre_user",
+    LEAD(t1."pre_user") OVER (
+        ORDER BY
+            t1."position",
+            t1."startDate"
+    ) as next_user,
     CASE
         WHEN t1."pre_user" IS NULL THEN 'New'
-        ELSE 'Replacement'
+        ELSE 'Existing'
     END AS "status"
 FROM
     (
@@ -38,7 +53,8 @@ FROM
                 WHERE
                     "emplStatus" = '209973'
                 ORDER BY
-                    "startDate" ASC
+                    "startDate",
+                    "endDate" ASC
             )
         WHERE
             "userId" <> "pre_user"
@@ -60,3 +76,5 @@ FROM
             "userId"
     ) AS t2 ON t1."position" = t2."position"
     AND t1."userId" = t2."userId"
+    INNER JOIN "DOE_C_DIMENSION_MONTH" AS DIM_MONTH ON DIM_MONTH."Last_Day" >= t1."startDate"
+    and DIM_MONTH."Last_Day" <= LAST_DAY(t1."endDate")
