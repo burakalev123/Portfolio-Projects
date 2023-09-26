@@ -107,6 +107,7 @@ var new_AnnualSalary = ConvertUtils.stringToNumber(AnnualSalary) - Annual13Salar
 //---------------------------------------
 var numofnewPos = ConvertUtils.stringToInteger(drp_num_of_newPos.getSelectedKey());
 for (var count = 1; count <= numofnewPos; count++) {
+    var count_str = ConvertUtils.numberToString(count);
     //---------------------------------------
     // 1. create new Position ID
     //---------------------------------------
@@ -174,9 +175,9 @@ for (var count = 1; count <= numofnewPos; count++) {
     var success_creation = PlanningModel_1.updateMembers("PD_001_POSITION", gv_newPositionMember);
 
     if (success_creation) {
-        //Application.showMessage(ApplicationMessageType.Success, "The new position has been created."); //Lea | 26.08.22 | Show success message later after Data Actions
+        Application.showMessage(ApplicationMessageType.Success, "Master Data for new position number: " + count_str + " has been created."); //Lea | 26.08.22 | Show success message later after Data Actions
     } else {
-        Application.showMessage(ApplicationMessageType.Error, "An error occured during the creation of the new position. The new position was not created.");
+        Application.showMessage(ApplicationMessageType.Error, "An error occured during the creation of Master Data for the new position: " + count_str + ". The new position was not created.");
     }
     //---------------------------------------
 
@@ -197,6 +198,7 @@ for (var count = 1; count <= numofnewPos; count++) {
         DA_NewPosPlan.setParameterValue("Date", "[Date].[YM].&[" + entryDate + "]");
 
         var executeResponse_NewPosPlan = DA_NewPosPlan.execute();
+        Application.showMessage(ApplicationMessageType.Success, "Transactional Data creation for new position number: " + count_str + " has started.");
         console.log("Date Parameter");
         console.log(DA_NewPosPlan.getParameterValue("Date"));
 
@@ -208,20 +210,20 @@ for (var count = 1; count <= numofnewPos; count++) {
             //var executeResponse_TotalCost = DA_CostCalc.execute();
             DA_CostCalcPos.setParameterValue("Position", "[PD_001_POSITION].[Job_Family_Hiearchie].&[" + newPositionID + "]");
             var executeResponse_TotalCost = DA_CostCalcPos.execute();
-
+            Application.showMessage(ApplicationMessageType.Success, "Cost Calculation for new position number: " + count_str + " has started.");
             //---------------------------------------
 
         } else {
-            Application.showMessage(ApplicationMessageType.Error, "An error occured during the execution of the data action DA_NewPosPlan.");
+            Application.showMessage(ApplicationMessageType.Error, "An error occured during the execution of the Transactional data creation for New Position number:" + count_str + ".");
         }
 
         if (executeResponse_TotalCost.status === DataActionExecutionResponseStatus.Success) {
             //Lastly, after waiting for the data actions to finish, show to the user that the position was created
-            Application.showMessage(ApplicationMessageType.Success, "The new position(s) has been created.");
+            Application.showMessage(ApplicationMessageType.Success, "Cost Calculation for new position number: " + count_str + " has been completed.");
             createPos.clearPopup();
 
         } else {
-            Application.showMessage(ApplicationMessageType.Error, "An error occured during the execution of the data action DA_CostCalc.");
+            Application.showMessage(ApplicationMessageType.Error, "An error occured during the execution of Cost Calculation for New Position number:" + count_str + ".");
         }
         //---------------------------------------
     }
