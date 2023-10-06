@@ -1,11 +1,35 @@
-SELECT 
-    "code",
+Changes
+=
+(
+SELECT
+	"code",
 	"effectiveStartDate",
 	"vacant",
-	LAG("vacant") OVER (PARTITION BY "code" ORDER BY "effectiveStartDate") AS "tobehıred",
-	TO_DATE(CASE WHEN ("vacant" = 'true' AND LAG("vacant") OVER (PARTITION BY "code" ORDER BY "effectiveStartDate") = 'false') 
-	                OR ("vacant" = 'true' AND LAG("vacant") OVER (PARTITION BY "code" ORDER BY "effectiveStartDate") IS NULL) 
-	                THEN "effectiveStartDate" 
-	        END) AS date_tobehired
-FROM "DOE_I_POSITION" 
-WHERE "code" = '70034321'
+	LAG("vacant") OVER (PARTITION BY "code" ORDER BY "effectiveStartDate") AS "previous_to_be_hired"
+FROM
+	"DOE_I_POSITION"
+);
+
+FirstStartDateForTrue =
+( SELECT
+	"code",
+	"effectiveStartDate",
+	"vacant",
+	CASE
+    WHEN "vacant" = 'true' AND ("previous_to_be_hired" IS NULL OR "previous_to_be_hired" = 'false') THEN "effectiveStartDate"
+    ELSE NULL
+  END AS "FirstStartDateForTrue"
+FROM
+	:Changes);
+
+RETURN
+SELECT
+	t1."code",
+	t1."effectiveStartDate",
+	t2."FirstStartDateForTrue"
+FROM "DOE_I_POSITION" as t1
+	LEFT JOIN :FirstStartDateForTrue  as t2 on t1."code" = t2."code"
+		AND t1."effectiveStartDate" >= t2."FirstStartDateForTrue"
+    ;
+    
+    
