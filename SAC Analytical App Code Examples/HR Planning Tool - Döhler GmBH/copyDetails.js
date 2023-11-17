@@ -27,12 +27,10 @@ rbg_BonusGroup.setSelectedKey("No");
 rbg_Seasonal.setSelectedKey("No");
 rbg_Temporary.setSelectedKey("No");
 
-var Results = tbl_hidden.getDataSource().getResultSet();
+var Results = tbl_Empl_Hidden.getDataSource().getResultSet();
 console.log(Results);
 
 if (Results.length === 0) {
-
-    Application.showMessage(ApplicationMessageType.Error, "Please select another employee as template, or fill in the details manually.");
 
 } else if (Results.length > 1) {
 
@@ -55,17 +53,10 @@ else {
     var Annual13Salary = Results[0]["PD_001_POSITION.D_001_Y13SALARY"].description;
     var GlobalJobProfile = Results[0]["PD_001_POSITION.Mapping_New_Job_Profile"].description;
     var End_Date = Results[0]["PD_001_POSITION.End_Date"].description; //AM 07.10.22 End Date Temporary Positions
-    console.log("GlobalJobProfile");
-    console.log(GlobalJobProfile);
 
     var AnnualSalary = ConvertUtils.stringToNumber(AnnualBaseSalary) + ConvertUtils.stringToNumber(Annual13Salary);
     var AnnualSalary_str = ConvertUtils.numberToString(AnnualSalary);
-    /*   
-       //Set Filter
-       if(GlobalJobProfile !== ""){
-           tbl_Job_Profile_Hidden.getDataSource().setDimensionFilter("PD_001_JOB_PROFILE","[PD_001_JOB_PROFILE].[H1].&["+GlobalJobProfile+"]");
-       }
-   */
+
     ///////////////////////////////////////////////////////
 
     for (i = 0; i < gv_JobProfile.length; i++) {
