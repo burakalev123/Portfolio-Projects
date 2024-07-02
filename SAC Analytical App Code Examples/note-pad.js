@@ -1,52 +1,87 @@
-//====================================================================
-// Start Initializing Application
-//====================================================================
-//var initStart = Date.now(); //Enable time tracking for initializing
-bEnableConsole = true; //Enable console log lines for debugging
-//Application.setCommentModeEnabled(true); //Enable/Disable comments functionality
-Application.showBusyIndicator("Initializing the application");
+//---------------------------------------------- Application Initialization ----------------------------------------------//
 
-//Log Progress
-//if (bEnableConsole) {console.log("First initialization processed after: "+ConvertUtils.numberToString((Date.now()-initStart)/1000)+" seconds");}
-pnl_warning.setVisible(false);
+// Show busy indicator at opening of application
+Application.showBusyIndicator("Initializing application, please wait...");
 
-//Key user access
-sKeyUsers = ["BURAKALEV"];
+// Set configuration value type
+const cfg_ValueType = "Region";
 
-if (sKeyUsers.includes(Application.getUserInfo().id)) {
-    Button_1.setVisible(true);
-    Button_2.setVisible(true);
+// Initialize counter for upcoming loops
+let i = 0;
+
+// Initialize Main Navigation Menu
+MainNavMenu.initializeNavMenu(Application.getInfo().id, "1");
+
+//---------------------------------------------- Initialize Master Data Objects ----------------------------------------------//
+
+// Initialize Icon Repository and items for Navigation Menu
+application_IconRepository = {
+    'enterfullscreen': '\ue166', // sap-icon://full-screen
+    'exitfullscreen': '\ue1f5', // sap-icon://exit-full-screen
+    'comments': '\xe0b2', // sap-icon://comment
+    'drivers': '\xe242', // sap-icon://customize
+    'instructions': '\xe05c', // sap-icon://hint
+    'help': '\xe1c4', // sap-icon://sys-help
+    'arrowdown': '\ue1e2', // sap-icon://navigation-down-arrow
+    'arrowright': '\ue066', // sap-icon://navigation-right-arrow
+    'arrowleft': '\ue067' // sap-icon://navigation-left-arrow
+};
+
+// Initialize all Model Measure Names
+// Please adjust according to the measures you have created.
+cfg_measureMapping = {
+    "ACT_PY": "13996122-1925-4646-3457-418957004981",
+    "ACT_YTD": "24102003-0221-4367-3798-723059847868",
+    "BUD": "17803798-5037-4078-3968-623996392971",
+    "Demand_FC": "19819739-9850-4720-3323-387505795421",
+    "NewFC": "24585272-5313-4519-3781-226688968273",
+    "PriorFC": "38661947-9338-4339-3233-392148620024"
+};
+
+// Initialize selectable options for CheckBox widget Table Settings dialogue
+// Retrieve measure descriptions
+var measures = chrt_Comparison.getDataSource().getMeasures();
+var measuresDictionary = { "dummy": "dummy" };
+
+for (i = 0; i < measures.length; i++) {
+    measuresDictionary[measures[i].id] = measures[i].description;
 }
 
-//Closed month
-var current_year = new Date(Date.now()).getFullYear();
-var pre_year = current_year - 1;
-var current_year_str = ConvertUtils.numberToString(current_year);
-var pre_year_str = ConvertUtils.numberToString(pre_year);
-console.log(current_year);
+// Define table setting options based on the cfg_measureMapping master data object
+cfg_tableSettingOptions = [
+    { id: cfg_measureMapping.ACT_PY, description: measuresDictionary[cfg_measureMapping.ACT_PY], displayId: 'x' },
+    { id: cfg_measureMapping.ACT_YTD, description: measuresDictionary[cfg_measureMapping.ACT_YTD], displayId: 'x' },
+    { id: cfg_measureMapping.BUD, description: measuresDictionary[cfg_measureMapping.BUD], displayId: 'x' },
+    { id: cfg_measureMapping.Demand_FC, description: measuresDictionary[cfg_measureMapping.Demand_FC], displayId: 'x' },
+    { id: cfg_measureMapping.NewFC, description: measuresDictionary[cfg_measureMapping.NewFC], displayId: 'x' },
+    { id: cfg_measureMapping.PriorFC, description: measuresDictionary[cfg_measureMapping.PriorFC], displayId: 'x' }
+];
 
-//getMonth() function returns month as a value between 0 – 11 for January to December.
-var pre_month = new Date(Date.now()).getMonth();
-var pre_month_str = ConvertUtils.numberToString(pre_month);
-console.log(pre_month);
-console.log(pre_month_str);
-console.log(pre_month_str.length);
-
-if (pre_month_str.length >= 2) {
-    var pre_month_year = current_year_str + pre_month_str;
-} else {
-    if (pre_month_str === "0") {
-        pre_month_year = pre_year_str + "12";
-    }
-    else { pre_month_year = current_year_str + "0" + pre_month_str; }
+// Load planning year from Forecast Version attribute/property and set filter on tables
+if (!g_planning_year) {
+    g_planning_year = SalesFC.getMember("Version", "public.Forecast").properties["Year"];
 }
+console.log("Planning Year: " + g_planning_year);
 
-console.log(pre_month_year);
+if (!g_planning_month) {
+    g_planning_month = SalesFC.getMember("Version", "public.Forecast").properties["StartDate"];
+}
+console.log("Planning Start Month: " + g_planning_month);
 
-inc_date_prompt.getInputControlDataSource().setSelectedMembers(pre_month_year);
-//
+ic_filterPanel_Date_DSEComp.getInputControlDataSource().setSelectedMembers(`[Date].[YM].&[${g_planning_month}]`);
 
-pop_prompt.open();
+if (!g_priorFCVers) {
+    g_priorFCVers = SalesFC.getMember("Version", "public.Forecast").properties["priorFCVers"];
+}
+console.log("Previous FC Version: " + g_priorFCVers);
 
+ic_priorFCVers.getInputControlDataSource().setSelectedMembers(`public.${g_priorFCVers}`);
 
+// Set the InputControl filter to the current system year and next year
+// First argument represents start year (current year + 0) and second argument represents end year (current year + 1)
+utilityScripts.setDateInputControl(1, 0, ic_filterPanel_Date);
 
+//---------------------------------------------- Initialization End ----------------------------------------------//
+
+// Hide busy indicator
+Application.hideBusyIndicator();
