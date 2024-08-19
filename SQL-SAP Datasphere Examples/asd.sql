@@ -1,17 +1,42 @@
-outTab =
+last_date =
 SELECT
-    (itab_cust.CUST_GRP4) as ZDOEKUNDE_CUST_GRP4,
-    RECORD,
-    SQL__PROCEDURE__SOURCE__RECORD
+    MAX("PickListV2_effectiveStartDate") AS "startDate",
+    "optionId"
 FROM
-    :inTab as intab
-    LEFT OUTER JOIN "/BI0/PCUSTOMER" as itab_cust on intab."/BIC/DOEBKUNDE" = itab_cust.CUSTOMER;
+    "V_HR_HL_PickListValueV2"
+GROUP BY
+    "optionId";
 
-errorTab =
+RETURN
 SELECT
-    '' AS ERROR_TEXT,
-    '' AS SQL__PROCEDURE__SOURCE__RECORD
+    "Union"."optionId",
+    "Union"."language" AS "language",
+    "Union"."label" AS "label",
+    "Union"."startDate"
 FROM
-    PUBLIC.DUMMY
-WHERE
-    DUMMY <> 'X';
+    (
+        SELECT
+            "PickListTable_DE"."PickListV2_effectiveStartDate" AS "startDate",
+            "PickListTable_DE"."label_de_DE" AS "label",
+            "PickListTable_DE"."optionId",
+            'D' AS "language"
+        FROM
+            "V_HR_HL_PickListValueV2" AS "PickListTable_DE"
+        WHERE
+            "PickListTable_DE"."PickListV2_id" = 'scm_actions'
+            AND "PickListTable_DE"."status" = 'A'
+        UNION
+        ALL
+        SELECT
+            "PickListTable_EN"."PickListV2_effectiveStartDate" AS "startDate",
+            "PickListTable_EN"."label_defaultValue" AS "label",
+            "PickListTable_EN"."optionId",
+            'E' AS "language"
+        FROM
+            "V_HR_HL_PickListValueV2" AS "PickListTable_EN"
+        WHERE
+            "PickListTable_EN"."PickListV2_id" = 'scm_actions'
+            AND "PickListTable_EN"."status" = 'A'
+    ) AS "Union"
+    INNER JOIN :last_date AS "lastDateTable" ON "Union"."startDate" = "lastDateTable"."startDate"
+    AND "Union"."optionId" = "lastDateTable"."optionId";
