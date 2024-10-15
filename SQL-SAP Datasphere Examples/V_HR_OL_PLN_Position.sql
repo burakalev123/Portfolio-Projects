@@ -145,7 +145,9 @@ SELECT
             CONCAT('(', "pos_detail"."cust_parentPositionCode"),
             ')'
         )
-    ) as T_001_HIGHERLEVELPOSITION
+    ) as T_001_HIGHERLEVELPOSITION,
+    "pos_detail"."cust_localJobTitle" AS T_001_LOCALJOBTITLE,
+    "tab_manager"."fullname" AS Line_Manager_Name
 FROM
     "View_Position_test2" as "pos_list"
     LEFT JOIN "V_HR_HL_Position" as "pos_detail" on "pos_list"."Position" = "pos_detail"."code"
@@ -185,3 +187,32 @@ FROM
     LEFT JOIN "V_HR_HL_Position" as "parentPositionCode" on "parentPositionCode"."code" = "pos_detail"."cust_parentPositionCode"
     AND "parentPositionCode"."effectiveStartDate" <= CURRENT_DATE
     AND "parentPositionCode"."effectiveEndDate" > CURRENT_DATE
+    LEFT JOIN (
+        SELECT
+            t1."Manager_ID" as Manager_ID,
+            t2."fullName" as fullname,
+            t1."ManagerPos_ID" as ManagerPos_ID
+        FROM
+            (
+                SELECT
+                    DISTINCT "empJob2"."userId" as "Manager_ID",
+                    "last_position"."position_ID" as "ManagerPos_ID"
+                FROM
+                    (
+                        SELECT
+                            DISTINCT "empJob"."position" as "position_ID",
+                            MAX("empJob"."startDate") AS "startDate",
+                            MAX("empJob"."endDate") AS "endDate"
+                        FROM
+                            "3VR_EMPO_EmpJob" AS "empJob"
+                        WHERE
+                            "empJob"."emplStatus" = '209973'
+                            AND "empJob"."endDate" = '9999-12-31'
+                        GROUP BY
+                            "empJob"."position"
+                    ) AS "last_position"
+                    LEFT JOIN "3VR_EMPO_EmpJob" AS "empJob2" ON "last_position"."position_ID" = "empJob2"."position"
+                    AND "last_position"."startDate" = "empJob2"."startDate"
+            ) as t1
+            LEFT JOIN "DOE_DIM_EMPLOYEE_STATUS_QUO" as t2 on t1."Manager_ID" = t2."userId"
+    ) as "tab_manager" on "pos_detail"."cust_parentPositionCode" = "tab_manager"."ManagerPos_ID"
