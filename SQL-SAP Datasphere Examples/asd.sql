@@ -1,57 +1,81 @@
-SELECT DISTINCT
-    TO_DATE(PLV."PickListV2_effectiveStartDate") AS "PickListV2_effectiveStartDate",
-    TO_DATE(CAL_END_DATE."PickListV2_effectiveEndDate") AS "PickListV2_effectiveEndDate",
-    PLV."PickListV2_id",
-    PLV."externalCode",
-    PLV."externalStandardizedCode",
-    PLV."lValue",
-    PLV."label_ar_SA",
-    PLV."label_da_DK",
-    PLV."label_de_DE",
-    PLV."label_defaultValue",
-    PLV."label_en_US",
-    PLV."label_localized",
-    PLV."label_nl_NL",
-    PLV."label_pl_PL",
-    PLV."label_pt_BR",
-    PLV."label_tr_TR",
-    PLV."label_zh_CN",
-    PLV."legacyStatus",
-    PLV."maxVal",
-    PLV."mdfSystemRecordStatus",
-    PLV."minVal",
-    PLV."nonUniqueExternalCode",
-    PLV."optValue",
-    PLV."optionId",
-    PLV."parentPickListValue",
-    PLV."rValue",
-    PLV."status"
-FROM "T_HR_IL_PickListValueV2" AS PLV
-
-    -- This join / nested SELECT statement calulates the missing end date.
-    -- (SF does not provide an end date.)
-    LEFT JOIN
+SELECT
+    IL_Calmonth."Last_Day" AS "date",
+    t1."position",
+    t1."userId",
+    t1."startDate",
+    t1."endDate",
+    t2."endDate_Last" AS endDate_LastEmpJob,
+    CASE
+        WHEN t1."userId" = LEAD(t1."pre_user") OVER (
+            ORDER BY
+                t1."position",
+                t1."startDate"
+        ) THEN t1."endDate"
+        ELSE t2."endDate_Last"
+    END AS endDate_Last,
+    t1."pre_user",
+    LEAD(t1."pre_user") OVER (
+        ORDER BY
+            t1."position",
+            t1."startDate"
+    ) AS next_user,
+    CASE
+        WHEN t1."pre_user" IS NULL THEN 'New'
+        ELSE 'Existing'
+    END AS "status"
+FROM
     (
-        (SELECT DISTINCT
-        NESTED_PLV."PickListV2_effectiveStartDate" AS "PickListV2_effectiveStartDate",
-        NESTED_PLV."PickListV2_id" AS "PickListV2_id",
-        NESTED_PLV."externalCode" AS "externalCode",
-        CASE WHEN TO_DATE(MIN(NESTED_PLV_TMP."PickListV2_effectiveStartDate")) IS NULL THEN
-                TO_DATE('99991231', 'YYYYMMDD')
-            ELSE
-                TO_DATE(ADD_DAYS(MIN(NESTED_PLV_TMP."PickListV2_effectiveStartDate"), -1))
-            END AS "PickListV2_effectiveEndDate"
-    FROM "T_HR_IL_PickListValueV2" AS NESTED_PLV
-        LEFT JOIN "T_HR_IL_PickListValueV2" AS NESTED_PLV_TMP ON
-                    NESTED_PLV."PickListV2_id" = NESTED_PLV_TMP."PickListV2_id" AND
-            NESTED_PLV."externalCode" = NESTED_PLV_TMP."externalCode" AND
-            TO_DATE(NESTED_PLV."PickListV2_effectiveStartDate") < TO_DATE(NESTED_PLV_TMP."PickListV2_effectiveStartDate")
-    GROUP BY
-                    NESTED_PLV."PickListV2_id",
-                    NESTED_PLV."PickListV2_effectiveStartDate",
-                    NESTED_PLV."externalCode")
-    ) AS CAL_END_DATE ON
-    CAL_END_DATE."PickListV2_effectiveStartDate" = PLV."PickListV2_effectiveStartDate" AND
-        CAL_END_DATE."PickListV2_id" = PLV."PickListV2_id" AND
-        CAL_END_DATE."externalCode" = PLV."externalCode"
-    
+        SELECT
+            "position",
+            "userId",
+            "startDate",
+            "endDate",
+            "signDate",
+            "signDate_eom",
+            "pre_user"
+        FROM
+            (
+                SELECT
+                    "position",
+                    "startDate",
+                    "endDate",
+                    "eventReason",
+                    "createdOn" AS signDate,
+                    LAST_DAY(to_date("createdOn")) AS signDate_eom,
+                    "userId",
+                    LAG("userId") OVER (
+                        PARTITION BY "position"
+                        ORDER BY
+                            "startDate"
+                    ) AS pre_user -- returns the predecessor (row before)
+                FROM
+                    "V_HR_IL_A_EmpJob"
+                WHERE
+                    "emplStatus" = '209973'
+                    AND "startDate" != "endDate"
+                ORDER BY
+                    "startDate",
+                    "endDate" ASC
+            )
+        WHERE
+            "userId" <> "pre_user"
+            OR "pre_user" IS NULL
+        ORDER BY
+            "startDate" ASC
+    ) AS t1
+    INNER JOIN (
+        SELECT
+            "position",
+            "userId",
+            MAX("endDate") AS "endDate_Last"
+        FROM
+            "V_HR_IL_A_EmpJob"
+        WHERE
+            "emplStatus" = '209973'
+        GROUP BY
+            "position",
+            "userId"
+    ) AS t2 ON t1."position" = t2."position"
+    AND t1."userId" = t2."userId"
+    INNER JOIN "V_SAP_IL_A_Calmonth" AS IL_Calmonth ON IL_Calmonth."Last_Day" >= t1."startDate"
+    AND IL_Calmonth."Last_Day" <= LAST_DAY(t1."endDate")
