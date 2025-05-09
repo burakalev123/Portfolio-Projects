@@ -3,6 +3,7 @@
 //Application.showBusyIndicator("Your application is loading. Please wait a moment...");
 //initialize counter for upcomming loops
 var i = 0;
+//Test
 
 //-----------------------------------------Initialize master data objects-----------------------------------------//
 //Initialize Icon Repository
