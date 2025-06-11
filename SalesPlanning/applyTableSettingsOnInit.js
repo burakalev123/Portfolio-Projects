@@ -1,29 +1,29 @@
-
-/**********************************************Retrieve selected Keys**********************************************/
+/**********************************************
+ * Retrieve selected Keys
+ **********************************************/
 var table = Table_content.getDataSource();
 
+/**********************************************
+ * Validation Steps
+ **********************************************/
 
-/**********************************************Validation Steps**********************************************/
-//Clear measure array (this array will be filled with all the measures from the checkbox and used as argument for setDimensionFilter later as well as for cancel button to restore latest selection)
-
+// Clear global measure array for reuse
 g_measureArrayTableSettings.splice(0, g_measureArrayTableSettings.length);
-var measureArrayTableSettings = ArrayUtils.create(Type.string); //for technical reasons, local array is used as argument for setDimensonFilter
 
+// Local array used for setDimensionFilter
+var measureArrayTableSettings = ArrayUtils.create(Type.string);
 
-//Loop through customization array of possible table setting elements from onInit() script
+// Loop through customization array of possible table setting elements from onInit() script
 for (var i = 0; i < cfg_tableSettingOptions.length; i++) {
+    var option = cfg_tableSettingOptions[i];
 
-    //if measure[i] from customization table is in selected keys, then push measure to measure array
-    if (cfg_tableSettingOptions[i].displayId === "x") {
-        var measureID = cfg_tableSettingOptions[i].id;
+    // Push measures to arrays if marked as selected ("x")
+    if (option.displayId === "x") {
+        var measureID = option.id;
         g_measureArrayTableSettings.push(measureID);
         measureArrayTableSettings.push(measureID);
     }
 }
 
-
-//set new measures to table
+// Set new measures to table
 table.setDimensionFilter(Alias.MeasureDimension, measureArrayTableSettings);
-
-
-
