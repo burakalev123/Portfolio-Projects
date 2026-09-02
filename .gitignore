@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Local environment / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Temporary files
+*.tmp
+*.log
